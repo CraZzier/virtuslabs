@@ -24,7 +24,7 @@ func Version() {
 }
 
 //Run serves for handling run command
-func Run(words []string) {
+func Run(words []string, instance *int) {
 	if len(words) == 1 {
 		fmt.Println("No flag added")
 		return
@@ -42,6 +42,7 @@ func Run(words []string) {
 				return
 			}
 			go func() {
+				*instance = 1
 				http.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
 					http.ServeFile(res, req, filepath.Join("./", words[2]))
 				})
@@ -54,6 +55,7 @@ func Run(words []string) {
 	}
 }
 func main() {
+	runningInstance := 0
 	for {
 		inputReader := bufio.NewReader(os.Stdin)
 		input, _ := inputReader.ReadString('\n')
@@ -69,7 +71,11 @@ func main() {
 		case "version":
 			Version()
 		case "run":
-			Run(commandArg)
+			if runningInstance == 1 {
+				fmt.Println("Html file already served")
+				continue
+			}
+			Run(commandArg, &runningInstance)
 		default:
 			fmt.Println("Unknown command")
 		}
